@@ -35,15 +35,15 @@ type HtmlCompProps = {
   positionY: number
 }
 const HtmlComponent = ({children, modelPath, positionY}: HtmlCompProps) => {
-  const meshRef = useRef<THREE.Mesh>(null!);
+  const groupRef = useRef<THREE.Mesh>(null!);
 
   useFrame((_state, delta) => {
-    return meshRef.current.rotation.y += delta / 2
+    return groupRef.current.rotation.y += delta / 2
   })
 
   return(
     <Section offset={0} factor={1}>
-      <group ref={meshRef} position={[0, positionY, 0]}>
+      <group ref={groupRef} position={[0, positionY, 0]}>
         <ModelComp modelPath={modelPath} />
         {children}
       </group>
