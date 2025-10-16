@@ -7,6 +7,16 @@ import Section from "./components/Section/Section"
 import Header from "./components/Header/Header"
 import './App.css'
 
+const LightsComp = () => {
+  return (
+    <>
+      <ambientLight intensity={0.5} />
+      <directionalLight intensity={Math.PI/2} position={[10, 10, 5]} />
+      <directionalLight intensity={Math.PI/2} position={[-10, 10, 0]} />
+    </>
+  )
+}
+
 
 type ModelCompProps = {
   modelPath: string
@@ -15,16 +25,6 @@ const ModelComp = ({modelPath}: ModelCompProps) => {
   const gltf = useGLTF(modelPath, true)
   return (
     <primitive object={gltf.scene} />
-  )
-}
-
-const LightsComp = () => {
-  return (
-    <>
-      <ambientLight intensity={0.5} />
-      <directionalLight intensity={Math.PI/2} position={[10, 10, 5]} />
-      <directionalLight intensity={Math.PI/2} position={[-10, 10, 0]} />
-    </>
   )
 }
 
