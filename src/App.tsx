@@ -57,7 +57,10 @@ export default function App() {
     <div className="App">
       <Header />
       <Canvas
-        camera={{ position: [0, 0, 120], fov: 70 }}
+        camera={{
+          // near: 0.1, far: 2000,
+          position: [0, 0, 120], fov: 70
+        }}
       >
         <LightsComp />
         <HtmlComponent modelPath="/grey.gltf" positionY={-20}>
