@@ -15,8 +15,8 @@ type Store = {
 
 export const useStore = create<Store>((set) => ({
   offset: 0,
-  sections: 3,
-  pages: 3,
+  sections: 4,
+  pages: 4,
   zoom: 1,
   top: createRef(),
   setOffset: (amount: number) => set((state) => ({ ...state, offset: amount })),
