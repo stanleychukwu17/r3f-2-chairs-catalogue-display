@@ -1,27 +1,27 @@
 // store.ts
-import { createRef, type RefObject } from 'react';
 import { create } from 'zustand';
 
-type Store = {
-  offset: number;
-  sections: number;
-  pages: number;
-  zoom: number;
-  top: RefObject<number | null>;
-  setOffset: (amount: number) => void;
-  increase: (amount: number) => void;
-  decrease: (amount: number) => void;
+type pageDetails = {
+  page: number,
+  scrollPercentage: number
+}
+
+type PageDetailsMap = {
+  [key: number]: pageDetails;
 };
 
-export const useStore = create<Store>((set) => ({
-  offset: 0,
-  sections: 4,
-  pages: 4,
-  zoom: 1,
-  top: createRef(),
-  setOffset: (amount: number) => set((state) => ({ ...state, offset: amount })),
-  increase: (amount: number) => set((state) => ({ ...state, offset: state.offset + amount })),
-  decrease: (amount: number) => set((state) => ({ ...state, offset: state.offset - amount })),
+type Store = {
+  pageDetails: PageDetailsMap;
+  setPageDetails: (page:number, scrollPercentage: number) => void
+};
+
+export const useStore = create<Store>(() => ({
+  pageDetails: { 100: {page: -1, scrollPercentage: 0} },
+  setPageDetails: (page:number, scrollPercentage: number) => {
+    const pageDetails = useStore.getState().pageDetails
+    pageDetails[page] = {page, scrollPercentage}
+    console.log("updated page store details", {page, scrollPercentage})
+  }
 }));
 
 export default useStore;
