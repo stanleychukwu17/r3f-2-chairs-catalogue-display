@@ -1,8 +1,8 @@
 import * as THREE from 'three'
 import { useRef, useState, useEffect} from "react"
-import { Canvas, useFrame, useThree } from "@react-three/fiber"
+import { Canvas, useFrame } from "@react-three/fiber"
 import {Html} from "@react-three/drei"
-import { useMotionValueEvent, useScroll, useTransform } from 'framer-motion'
+import { motion, useMotionValueEvent, useScroll, useTransform, transform, useSpring } from 'framer-motion'
 
 import LightsComp from "./components/App-Components/LightsComp"
 import ModelComp from "./components/App-Components/ModelComp"
@@ -11,57 +11,42 @@ import Header from "./components/Header/Header"
 import './App.css'
 import { useStore } from "./store/store";
 
-const chairs: Record<string, {title: string, path: string}> = {
-  "yellow": {
-    title:"yellow", path:"/yellow.gltf"
-  },
-  "grey": {
-    title:"grey", path:"/grey.gltf"
-  },
-  "limegreen": {
-    title:"limegreen", path:"/lime_green.gltf"
-  },
-  "pink": {
-    title:"pink", path:"/candy_pink.gltf"
-  },
-}
-
-
-
-
 type HtmlCompProps = {
   children: React.ReactNode,
   modelPath: string,
-  positionY: number,
-  offset: number
+  positionY: number, // the starting positionY of the html component
+  offset: number, // the page number
+  viewRange: [number, number, number] // view range for the chairs [positionY at 0%, positionY at 100%, positionY at 200%]
 }
-const HtmlComponent = ({children, modelPath, positionY, offset}: HtmlCompProps) => {
-  const groupRef = useRef<THREE.Mesh>(null!);
+const HtmlComponent = ({children, modelPath, positionY, offset, viewRange}: HtmlCompProps) => {
+  const groupRef = useRef<THREE.Group>(null!);
   const {scrollYProgress} = useScroll()
 
-  console.log({startPositionY: positionY, page: offset})
+  // initialize the springPositionY, useSpring creates a smooth animation for the positionY
+  const springPositionY = useSpring(positionY, {duration: 600, stiffness: 50, damping: 10})
 
+  // as the springPositionY changes, we update the groupMesh positionY
+  useMotionValueEvent(springPositionY, "change", (value) => {
+    groupRef.current.position.y = value
+  })
+
+  // as the scrollYProgress changes, we update the springPositionY value
   useMotionValueEvent(scrollYProgress, "change", () => {
     const {pageDetails} = useStore.getState()
-    const thisPage = pageDetails[offset]
-    const this_page_scroll_percentage = thisPage.scrollPercentage
+    const thisPageDetails = pageDetails[offset]
+    const this_page_scroll_percentage = thisPageDetails.scrollPercentage
 
-    // calculate the new positionY and then update the group position
-    // if 85% = positionY, then newPositionY = (this_page_scroll_percentage * positionY)/100
-    // const new_positionY = 0-((this_page_scroll_percentage * positionY)/150)
-    // const new_positionY = (this_page_scroll_percentage * positionY)/150
-
-    // console.log("animate with", thisPage, {new_positionY})
-    // groupRef.current.position.y = new_positionY
-    console.log("animate with", thisPage, {this_page_scroll_percentage})
+    // calculateNewPositionY = transform([0%, 100%, 200%], [positionY at 0%, positionY at 100%, positionY at 200%], {clamp: false})
+    const calculateNewPositionY = transform([0, 100, 200], [...viewRange], {clamp: false})
+    const new_positionY = calculateNewPositionY(this_page_scroll_percentage) // calls the transform function to calculate the new positionY
+    springPositionY.set(new_positionY) // updates the "springPositionY" value with the new "positionY"
   })
 
-
+  // rotate the chairs
   useFrame((_state, delta) => {
-    return groupRef.current.rotation.y += delta / 2
+    return groupRef.current.rotation.y += delta / 1.5
   })
 
-  // console.log({offset, positionY})
   return(
       <group ref={groupRef} position={[0, positionY, 0]}>
         <ModelComp modelPath={modelPath} />
@@ -73,36 +58,24 @@ const HtmlComponent = ({children, modelPath, positionY, offset}: HtmlCompProps) 
 
 const TitleComp = ({title, offset}: {title: string, offset: number}) => {
   const containerRef = useRef<HTMLDivElement>(null!);
-  const currentPage = useRef<string>('')
-  const {setPageDetails} = useStore()
+  const {setPageDetails, windowResized, setWindowResized} = useStore()
 
-  const [pageHeight, setPageHeight] = useState(0);
+  const [pageHeight, setPageHeight] = useState(0); // stores the height for each page
 
   const pageOffset = offset // i.e the page current number, the first page starts from 0
-  let pageDistanceFromTheTop = pageOffset * pageHeight
-  const [pageStart, setPageStart] = useState(0);
-  const [pageEnd, setPageEnd] = useState(0);
+  let pageDistanceFromTheTop = pageOffset * pageHeight // the distance of the page from the top
+  const [_pageStart, setPageStart] = useState(0); // stores the start position of the page
+  const [_pageEnd, setPageEnd] = useState(0); // stores the end position of the page
 
   const [scrollStart, setScrollStart] = useState(0);
   const [scrollEnd, setScrollEnd] = useState(0);
 
-  const {scrollY} = useScroll({target: containerRef})
-  // const scrollPercentage = useTransform(scrollY, [scrollStart, scrollEnd], [0, 100])
+  const {scrollY} = useScroll({target: containerRef}) 
   const scrollPercentage = useTransform(scrollY, [scrollStart, scrollEnd], [0, 100], {clamp: false})
 
-  // checks if the current scroll position is within the bounds of the current page
-  const mySection = () => {
-    if (scrollY.get() >= pageStart && scrollY.get() <= pageEnd) {
-      currentPage.current = title;
-      // console.log('now in current page', title)
-    } else {
-      currentPage.current = ''
-    }
-  
-    return currentPage.current
-  }
-
-  // updates the page height and the page start and end positions
+  // retrieve's the current height for the page
+  // then uses it to calculate the pageDistanceFromTheTop
+  // also used to calculate when the page enters the viewport `scrollStart` and when it leaves `scrollEnd`
   const updateAllPages = () => {
     if (!containerRef.current) return
 
@@ -112,68 +85,99 @@ const TitleComp = ({title, offset}: {title: string, offset: number}) => {
     const pageHeightToRemove = currentHeight * .85 // the height of the page to remove from the scroll position
     pageDistanceFromTheTop = pageOffset * currentHeight; // the distance of the page from the top
 
-    const start = pageDistanceFromTheTop
-    const end = pageDistanceFromTheTop + currentHeight
+    const startOfPage = pageDistanceFromTheTop
+    const endOfPage = pageDistanceFromTheTop + currentHeight
 
-    // console.log({title, pageStart: start, pageEnd: end, scrollStart: start-pageHeightToRemove, scrollEnd: end-pageHeightToRemove})
+    setPageStart(startOfPage)
+    setPageEnd(endOfPage)
 
-    setPageStart(start)
-    setPageEnd(end)
-
-    // i removed the pageHeightToRemove from the pageStart and pageEnd because by the time the user reaches the start of the page, the complete page is already in the viewport
-    setScrollStart(start-pageHeightToRemove)
-    setScrollEnd(end-pageHeightToRemove)
+    // i removed the pageHeightToRemove from the pageStart and pageEnd
+    // because normally by the time the user reaches the start of the page, the complete page is already in the viewport
+    setScrollStart(startOfPage-pageHeightToRemove)
+    setScrollEnd(endOfPage-pageHeightToRemove)
   }
 
-  // if the user resizes the window, calls the "updateAllPages" function
+  // calls the "updateAllPages" function on mount
   useEffect(() => {
-    // calls the "updateAllPages" function on mount
     updateAllPages()
-
-    const handleResize = () => {
-      updateAllPages()
-    }
-
-    window.addEventListener('resize', handleResize)
-    return () => {
-      window.removeEventListener('resize', handleResize)
-    }
   }, [])
 
+  // if the user resizes the viewport, we call the "updateAllPages" function
+  useEffect(() => {
+    if (windowResized === true) {
+      updateAllPages()
+      setWindowResized(false)
+    }
+  }, [windowResized])
+
+  // updates the global store pageDetails with the current scrollPercentage
   useMotionValueEvent(scrollPercentage, "change", (value) => {
-    // console.log('scroll update', {scrollStart, scrollEnd, title, scrollPercentage: value})
-    mySection()
-    setPageDetails(offset, Math.round(value))
+    setPageDetails(offset, Math.round(value)) // where offset = pageNumber
   })
 
   return (
-    <div className='others' ref={containerRef}>
+    <motion.div className='others' ref={containerRef}>
       <p>{title}</p>
-    </div>
+    </motion.div>
   )
 }
 
 
+type ChairProps = {
+  title: string,
+  path: string,
+  viewRange: [number, number, number]
+}
+const chairs: Record<string, ChairProps> = {
+  "yellow": {
+    title:"yellow", path:"/yellow.gltf", viewRange: [-200, -5, 200]
+  },
+  "grey": {
+    title:"grey", path:"/grey.gltf", viewRange: [-200, -5, 200]
+  },
+  "limegreen": {
+    title:"limegreen", path:"/lime_green.gltf", viewRange: [-200, -5, 200]
+  },
+  "pink": {
+    title:"pink", path:"/candy_pink.gltf", viewRange: [-200, -5, 200]
+  },
+}
+
+
 export default function App() {
+  const {setWindowResized} = useStore()
+
+  // adds an event handler to update the viewport size whenever the user resizes the viewport
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowResized(true)
+    }
+
+    window.addEventListener("resize", handleResize)
+    return () => {
+      window.removeEventListener("resize", handleResize)
+    }
+  }, [])
+
   return (
     <div className="App">
       <Header />
       <div className="three_cvr">
         <div className="three_Canvas">
           <Canvas
-            camera={{
-              // near: 0.1, far: 2000,
-              position: [0, 0, 120], fov: 70
-            }}
+            camera={{position: [0, 0, 120], fov: 70}}
           >
+            {/* renders the lights */}
             <LightsComp />
 
+            {/* renders the chairs */}
             {Object.keys(chairs).map((key, index) => {
               const chair = chairs[key].path
               const title = chairs[key].title
+              const viewRange = chairs[key].viewRange
 
               return (
-                <HtmlComponent modelPath={chair} positionY={-35 - (index * 150)} offset={index} key={key}>
+                <HtmlComponent key={key} modelPath={chair} positionY={-35 - (index * 150)} offset={index} viewRange={viewRange}>
                   <Html fullscreen>
                     <div className="title">{title}</div>
                   </Html>
@@ -183,6 +187,7 @@ export default function App() {
           </Canvas>
         </div>
 
+        {/* renders the titles */}
         {Object.keys(chairs).map((key, index) => {
           return <TitleComp title={chairs[key].title} offset={index} key={key} />
         })}
