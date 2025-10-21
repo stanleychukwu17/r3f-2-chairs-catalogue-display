@@ -9,7 +9,7 @@ import ModelComp from "./components/App-Components/ModelComp"
 // import Section from "./components/Section/Section"
 import Header from "./components/Header/Header"
 import './App.css'
-// import { useStore } from "./store/store";
+import { useStore } from "./store/store";
 
 const chairs: Record<string, {title: string, path: string}> = {
   "yellow": {
@@ -37,6 +37,25 @@ type HtmlCompProps = {
 }
 const HtmlComponent = ({children, modelPath, positionY, offset}: HtmlCompProps) => {
   const groupRef = useRef<THREE.Mesh>(null!);
+  const {scrollYProgress} = useScroll()
+
+  console.log({startPositionY: positionY, page: offset})
+
+  useMotionValueEvent(scrollYProgress, "change", () => {
+    const {pageDetails} = useStore.getState()
+    const thisPage = pageDetails[offset]
+    const this_page_scroll_percentage = thisPage.scrollPercentage
+
+    // calculate the new positionY and then update the group position
+    // if 85% = positionY, then newPositionY = (this_page_scroll_percentage * positionY)/100
+    // const new_positionY = 0-((this_page_scroll_percentage * positionY)/150)
+    // const new_positionY = (this_page_scroll_percentage * positionY)/150
+
+    // console.log("animate with", thisPage, {new_positionY})
+    // groupRef.current.position.y = new_positionY
+    console.log("animate with", thisPage, {this_page_scroll_percentage})
+  })
+
 
   useFrame((_state, delta) => {
     return groupRef.current.rotation.y += delta / 2
@@ -55,6 +74,7 @@ const HtmlComponent = ({children, modelPath, positionY, offset}: HtmlCompProps) 
 const TitleComp = ({title, offset}: {title: string, offset: number}) => {
   const containerRef = useRef<HTMLDivElement>(null!);
   const currentPage = useRef<string>('')
+  const {setPageDetails} = useStore()
 
   const [pageHeight, setPageHeight] = useState(0);
 
@@ -67,8 +87,8 @@ const TitleComp = ({title, offset}: {title: string, offset: number}) => {
   const [scrollEnd, setScrollEnd] = useState(0);
 
   const {scrollY} = useScroll({target: containerRef})
-  const scrollPercentage = useTransform(scrollY, [scrollStart, scrollEnd], [0, 100])
-  // const scrollPercentage = useTransform(scrollY, [scrollStart, scrollEnd], [0, 100], {clamp: false})
+  // const scrollPercentage = useTransform(scrollY, [scrollStart, scrollEnd], [0, 100])
+  const scrollPercentage = useTransform(scrollY, [scrollStart, scrollEnd], [0, 100], {clamp: false})
 
   // checks if the current scroll position is within the bounds of the current page
   const mySection = () => {
@@ -121,8 +141,9 @@ const TitleComp = ({title, offset}: {title: string, offset: number}) => {
   }, [])
 
   useMotionValueEvent(scrollPercentage, "change", (value) => {
-    console.log('scroll update', {scrollStart, scrollEnd, title, scrollPercentage: value})
+    // console.log('scroll update', {scrollStart, scrollEnd, title, scrollPercentage: value})
     mySection()
+    setPageDetails(offset, Math.round(value))
   })
 
   return (
@@ -152,7 +173,7 @@ export default function App() {
               const title = chairs[key].title
 
               return (
-                <HtmlComponent modelPath={chair} positionY={-35 - (index * 150)} offset={index}  key={key}>
+                <HtmlComponent modelPath={chair} positionY={-35 - (index * 150)} offset={index} key={key}>
                   <Html fullscreen>
                     <div className="title">{title}</div>
                   </Html>
