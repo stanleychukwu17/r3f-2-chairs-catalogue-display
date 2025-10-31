@@ -1,3 +1,8 @@
+- hide the text for each section
+- animation header
+- background color animation
+- text color based on chair color
+- 
 - add the header component to the scene
 - animate my name at the background of the element using framer motion, blur the name on the background
 - put a link to my portfolio at the page bottom

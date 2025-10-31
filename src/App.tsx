@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { useRef, useState, useEffect} from "react"
 import { Canvas, useFrame } from "@react-three/fiber"
-import {Html} from "@react-three/drei"
+import {Html, useGLTF} from "@react-three/drei"
 import { motion, useMotionValueEvent, useScroll, useTransform, transform, useSpring } from 'framer-motion'
 
 import LightsComp from "./components/App-Components/LightsComp"
@@ -142,6 +142,10 @@ const chairs: Record<string, ChairProps> = {
     title:"pink", path:"/candy_pink.gltf", viewRange: [-200, -5, 200]
   },
 }
+Object.values(chairs).forEach(chair => {
+  useGLTF.preload(chair.path)
+  console.log(chair.path)
+});
 
 
 export default function App() {
