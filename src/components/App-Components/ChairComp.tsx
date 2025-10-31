@@ -1,13 +1,13 @@
 import { useGLTF } from "@react-three/drei"
 
-type ModelCompProps = {
+type ChairCompProps = {
   modelPath: string
 }
-const ModelComp = ({modelPath}: ModelCompProps) => {
+const ChairComp = ({modelPath}: ChairCompProps) => {
   const gltf = useGLTF(modelPath, true)
   return (
     <primitive object={gltf.scene} />
   )
 }
 
-export default ModelComp;
+export default ChairComp;
