@@ -1,10 +1,15 @@
-- hide the text for each section
-- animation header
-- background color animation
-- text color based on chair color
-- 
-- add the header component to the scene
+- make it mobile responsive
+- see the site on your phone
+- link from logo to my portfolio
 - animate my name at the background of the element using framer motion, blur the name on the background
-- put a link to my portfolio at the page bottom
+- put a link to my portfolio at the page bottom [see my other projects]
 - commit all the changes made
 - merge the feature branch into the main branch
+---
+- see if you can use the agent to generate a readme for this project
+- add the guide for redoing it with AI
+
+# grey = #99d3cf
+# yellow = #e9ba4b
+# limegreen = #c4f756 or #2d9300
+# pink = #f714a9
