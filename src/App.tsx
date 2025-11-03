@@ -1,11 +1,11 @@
 import * as THREE from 'three'
 import { useRef, useState, useEffect} from "react"
 import { Canvas, useFrame } from "@react-three/fiber"
-import {Html, useGLTF} from "@react-three/drei"
+import { Html, useGLTF } from "@react-three/drei"
 import { motion, useMotionValueEvent, useScroll, useTransform, transform, useSpring } from 'framer-motion'
 
 import LightsComp from "./components/App-Components/LightsComp"
-import ModelComp from "./components/App-Components/ModelComp"
+import ChairComp from "./components/App-Components/ChairComp"
 // import Section from "./components/Section/Section"
 import Header from "./components/Header/Header"
 import './App.css'
@@ -49,7 +49,7 @@ const HtmlComponent = ({children, modelPath, positionY, offset, viewRange}: Html
 
   return(
       <group ref={groupRef} position={[0, positionY, 0]}>
-        <ModelComp modelPath={modelPath} />
+        <ChairComp modelPath={modelPath} />
         {children}
       </group>
   )
@@ -117,7 +117,7 @@ const TitleComp = ({title, offset}: {title: string, offset: number}) => {
 
   return (
     <motion.div className='others' ref={containerRef}>
-      <p>{title}</p>
+      <p style={{display: "none"}}>{title}</p>
     </motion.div>
   )
 }
@@ -128,6 +128,7 @@ type ChairProps = {
   path: string,
   viewRange: [number, number, number]
 }
+// chairs object
 const chairs: Record<string, ChairProps> = {
   "yellow": {
     title:"yellow", path:"/yellow.gltf", viewRange: [-200, -5, 200]
@@ -142,9 +143,10 @@ const chairs: Record<string, ChairProps> = {
     title:"pink", path:"/candy_pink.gltf", viewRange: [-200, -5, 200]
   },
 }
+
+// preloads the gltf models
 Object.values(chairs).forEach(chair => {
   useGLTF.preload(chair.path)
-  console.log(chair.path)
 });
 
 
@@ -166,8 +168,14 @@ export default function App() {
   return (
     <div className="App">
       <Header />
-      <div className="three_cvr">
+      <motion.div
+        className="three_cvr"
+        initial={{opacity: 0}}
+        animate={{opacity: 1}}
+        transition={{duration: 1.5, delay: 2}}
+      >
         <div className="three_Canvas">
+          {/* three.js canvas */}
           <Canvas
             camera={{position: [0, 0, 120], fov: 70}}
           >
@@ -191,11 +199,19 @@ export default function App() {
           </Canvas>
         </div>
 
-        {/* renders the titles */}
+        {/* renders the titles for each of the chair */}
+        {/*
+          - this title comp is what i use to map the user viewport to the three.js scene
+          - each "title" comp is styled to occupy the viewport of the device, i.e width: 100vw; height: 100dvh;
+          - as the user scroll from one "title" comp to "another title" comp,
+          - i track the scroll percentage of each "title" comp
+          - and then i update the global store pageDetails with the current scrollPercentage
+          - i use the current scrollPercentage to  animate the chair postion into view
+        */}
         {Object.keys(chairs).map((key, index) => {
           return <TitleComp title={chairs[key].title} offset={index} key={key} />
         })}
-      </div>
+      </motion.div>
     </div>
   )
 }
