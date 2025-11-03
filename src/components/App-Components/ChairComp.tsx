@@ -6,7 +6,7 @@ type ChairCompProps = {
 const ChairComp = ({modelPath}: ChairCompProps) => {
   const gltf = useGLTF(modelPath, true)
   return (
-    <primitive object={gltf.scene} />
+    <primitive scale={1.5} position={[0, -15, 0]} object={gltf.scene} />
   )
 }
 
