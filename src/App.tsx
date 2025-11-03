@@ -56,7 +56,7 @@ const HtmlComponent = ({children, modelPath, positionY, offset, viewRange}: Html
 }
 
 
-const TitleComp = ({title, offset}: {title: string, offset: number}) => {
+const ScrollTracker = ({title, offset}: {title: string, offset: number}) => {
   const containerRef = useRef<HTMLDivElement>(null!);
   const {setPageDetails, windowResized, setWindowResized} = useStore()
 
@@ -116,7 +116,7 @@ const TitleComp = ({title, offset}: {title: string, offset: number}) => {
   })
 
   return (
-    <motion.div className='others' ref={containerRef}>
+    <motion.div className='scroll_tracker' ref={containerRef}>
       <p style={{display: "none"}}>{title}</p>
     </motion.div>
   )
@@ -191,7 +191,7 @@ export default function App() {
               return (
                 <HtmlComponent key={key} modelPath={chair} positionY={-35 - (index * 150)} offset={index} viewRange={viewRange}>
                   <Html fullscreen>
-                    <div className="title">{title}</div>
+                    <div className="three_chairs_title">{title}</div>
                   </Html>
                 </HtmlComponent>
               )
@@ -201,15 +201,15 @@ export default function App() {
 
         {/* renders the titles for each of the chair */}
         {/*
-          - this title comp is what i use to map the user viewport to the three.js scene
-          - each "title" comp is styled to occupy the viewport of the device, i.e width: 100vw; height: 100dvh;
-          - as the user scroll from one "title" comp to "another title" comp,
-          - i track the scroll percentage of each "title" comp
+          - this comp is what i use to map the user viewport to the three.js scene
+          - each comp is styled to occupy the viewport of the device, i.e width: 100vw; height: 100dvh;
+          - as the user scroll from one comp to another comp,
+          - i track the scroll percentage of each comp
           - and then i update the global store pageDetails with the current scrollPercentage
-          - i use the current scrollPercentage to  animate the chair postion into view
+          - i use the current scrollPercentage to animate the chair into view
         */}
         {Object.keys(chairs).map((key, index) => {
-          return <TitleComp title={chairs[key].title} offset={index} key={key} />
+          return <ScrollTracker title={chairs[key].title} offset={index} key={key} />
         })}
       </motion.div>
     </div>
