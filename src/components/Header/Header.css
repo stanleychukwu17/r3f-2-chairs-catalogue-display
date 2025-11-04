@@ -26,6 +26,7 @@
     align-items: center;
     color: var(--dark-yellow);
     font-size: .86rem;
+    font-weight: 400;
 
     > div {
       width: 15%;
@@ -41,10 +42,9 @@
     button {
       background-color: var(--pink);
       color: var(--bg-color);
-      box-shadow: 3px 3px 0 rgba(249, 183, 248, .5);
       width: 80%;
-      padding: 10px 15px;
-      border: 2px solid #fff;
+      padding: 12px 15px;
+      border: 0 solid transparent;
       border-radius: 2px;
       font-size: .9rem;
       font-weight: bold;
