@@ -23,7 +23,7 @@ export const useStore = create<Store>((set, get) => ({
   setWindowResized: (value:boolean) => set({windowResized: value}),
 
   pageDetails: {
-    100: {page: -1, scrollPercentage: 0}
+    100: {page: -1, scrollPercentage: -5000}
   },
   setPageDetails: (page:number, scrollPercentage: number) => {
     const pageDetails = useStore.getState().pageDetails
