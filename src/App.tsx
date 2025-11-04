@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import { useRef, useState, useEffect} from "react"
 import { Canvas, useFrame } from "@react-three/fiber"
 import { Html, useGLTF } from "@react-three/drei"
-import { motion, useMotionValueEvent, useScroll, useTransform, transform, useSpring } from 'framer-motion'
+import { motion, useMotionValueEvent, useScroll, useTransform, transform, useSpring, animate } from 'framer-motion'
 
 import LightsComp from "./components/App-Components/LightsComp"
 import ChairComp from "./components/App-Components/ChairComp"
@@ -122,7 +122,6 @@ const ScrollTracker = ({title, offset}: {title: string, offset: number}) => {
   )
 }
 
-
 type ChairProps = {
   title: string,
   path: string,
@@ -149,9 +148,37 @@ Object.values(chairs).forEach(chair => {
   useGLTF.preload(chair.path)
 });
 
+const bgColors: Record<number, string> = {
+  0: "#e9ba4b",
+  1: "#dfe4ea",
+  2: "#c4f756",
+  3: "#f714a9"
+}
+const txtColors: Record<number, string> = {
+  0: "#fff",
+  1: "#000",
+  2: "#000",
+  3: "#fff"
+}
 
 export default function App() {
-  const {setWindowResized} = useStore()
+  const appRef = useRef<HTMLDivElement>(null!)
+  const {setWindowResized, pageDetails} = useStore()
+  const {scrollYProgress} = useScroll()
+
+  // use the scrollprogress of the user and changes the background color based on scrollprogress
+  useMotionValueEvent(scrollYProgress, "change", (_value) => {
+    // console.log(pageDetails)
+    Object.values(pageDetails).map(chair => {
+      // console.log(chair)
+      if (chair.scrollPercentage >= 50 && chair.scrollPercentage <= 100) {
+        console.log("active chair is page", chair.page, chair)
+        animate(appRef.current, {"background":bgColors[chair.page]}, {duration: .3, type: "spring"})
+        animate(document.querySelectorAll(".three_chairs_title")!, {"color":txtColors[chair.page]}, {duration: .1})
+      }
+    })
+  })
+
 
   // adds an event handler to update the viewport size whenever the user resizes the viewport
   useEffect(() => {
@@ -166,7 +193,7 @@ export default function App() {
   }, [])
 
   return (
-    <div className="App">
+    <motion.div className="App" ref={appRef}>
       <Header />
       <motion.div
         className="three_cvr"
@@ -212,6 +239,6 @@ export default function App() {
           return <ScrollTracker title={chairs[key].title} offset={index} key={key} />
         })}
       </motion.div>
-    </div>
+    </motion.div>
   )
 }
