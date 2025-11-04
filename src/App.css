@@ -45,7 +45,8 @@ a {
 
     .three_chairs_title {
       font-size: 15rem;
-      color: var(--dark-yellow);
+      /* color: var(--dark-yellow); */
+      color: #fff;
       text-align: center;
     }
   
@@ -65,7 +66,6 @@ a {
       width: 100%;
       height: clamp(200px, 100dvh, 2000px);
       margin: 0 auto;
-      background-color: orange;
     }
   }
 }
