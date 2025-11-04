@@ -1,15 +1,11 @@
-- make it mobile responsive
-- see the site on your phone
-- link from logo to my portfolio
-- animate my name at the background of the element using framer motion, blur the name on the background
-- put a link to my portfolio at the page bottom [see my other projects]
-- commit all the changes made
-- merge the feature branch into the main branch
----
-- see if you can use the agent to generate a readme for this project
+- review all the code and see if you're okay with it
+- comment on the code
 - add the guide for redoing it with AI
+---
+- make it mobile responsive & see the site on your phone
+- see if you can use the agent to generate a readme for this project
 
-# grey = #99d3cf
-# yellow = #e9ba4b
-# limegreen = #c4f756 or #2d9300
-# pink = #f714a9
+- comment on what is the meaning of "viewRange" in the chairs Object
+- set_up template for redoing by yourself
+- prepare the chairs note to be added to questions and answers of 3.js
+- use the template to redo the chairs project
